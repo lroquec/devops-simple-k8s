@@ -1,0 +1,93 @@
+apiVersion: apps/v1
+kind: Deployment 
+metadata:
+  name: usermgmt-admin
+  labels:
+    app: usermgmt-admin
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: usermgmt-admin
+  template:  
+    metadata:
+      labels: 
+        app: usermgmt-admin
+    spec:
+      initContainers:
+        - name: init-db
+          image: busybox:1.31
+          command: 
+            - sh
+            - -c
+            - >
+              echo -e "Checking for the availability of MySQL Server deployment";
+              while ! nc -z db 3306; do
+                sleep 1;
+                printf "-";
+              done;
+              echo -e "  >> MySQL DB Server has started";
+      containers:
+        - name: usermgmt-admin
+          image: lroquec/usermgm-admin:test
+          imagePullPolicy: Always
+          ports: 
+            - containerPort: 5000
+          env:
+            - name: DB_HOSTNAME
+              valueFrom:
+                secretKeyRef:
+                  name: usermgmt-webapp-secret
+                  key: DB_HOSTNAME
+            - name: DB_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: usermgmt-webapp-secret
+                  key: DB_PORT
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: usermgmt-webapp-secret
+                  key: DB_NAME
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: usermgmt-webapp-secret
+                  key: DB_USERNAME
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: usermgmt-webapp-secret
+                  key: DB_PASSWORD
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: usermgmt-webapp-secret
+                  key: SECRET_KEY
+          # Probes
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 5000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 5000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          # Resource limits
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "250m"
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
