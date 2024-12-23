@@ -1,10 +1,14 @@
 # User Management Application Deployment on Kubernetes
 
-This repository contains the Kubernetes manifests to deploy a user management application consisting of a MySQL database and two application components: Admin and User portals. Below is a detailed overview of the files and their functionality.
+This repository contains the Kubernetes manifests to deploy a very simple user management application consisting of a MySQL database and two application components: Admin and User portals. Below is a detailed overview of the files and their functionality.
 
 ---
 
 ## Project Structure
+
+### 0. Namespaces
+- **File**: `00-namespace.yaml`
+- **Purpose**: Defines the namespaces for resources.
 
 ### 1. Secrets
 - **File**: `06-UserMgmt-Secret.yaml`
@@ -46,9 +50,20 @@ This repository contains the Kubernetes manifests to deploy a user management ap
   - Deployment: Defines the User component with similar configurations to the Admin component.
   - Service: Exposes the User component via NodePort.
 
+### 9. Network policy for db
+- **Files**: 
+  - `11-networkpolicy-for-db.yaml`
+- **Purpose**:
+  -  Restrict MySQL access, allowing only connections from the `usermgm` namespace to the database in the `database` namespace.
+
 ---
 
 ## Deployment Steps
+
+0. **Create the namespace resources**:
+   ```bash
+   kubectl apply -f 00-namespace.yaml
+   ```
 
 1. **Create the Storage Class**:
    ```bash
@@ -84,7 +99,10 @@ This repository contains the Kubernetes manifests to deploy a user management ap
    kubectl apply -f 08-UserMgmtUser-Deployment.yaml
    kubectl apply -f 10-UserMgmtUser-Service.yaml
    ```
-
+9. **Deploy the Network Policy Component**:
+   ```bash
+   kubectl apply -f 11-networkpolicy-for-db.yaml
+   ```
 ## Configuration Details
 
 ### Environment Variables
