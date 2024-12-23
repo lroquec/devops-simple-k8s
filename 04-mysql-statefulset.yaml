@@ -18,9 +18,17 @@ spec:
       containers:
         - name: mysql
           image: mysql:8.0
-          envFrom:
-            - configMapRef:
-                name: pythonlogin-init-sql  # Configuration for database initialization
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: usermgmt-mysql-secret
+                  key: DB_PASSWORD
+            - name: MYSQL_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: usermgmt-mysql-secret
+                  key: DB_NAME
           ports:
             - containerPort: 3306
               name: mysql
@@ -31,15 +39,15 @@ spec:
               mountPath: /docker-entrypoint-initdb.d
           resources:
             requests:
-              memory: "64Mi"
+              memory: "512Mi"
               cpu: "250m"
             limits:
-              memory: "128Mi"
+              memory: "1Gi"
               cpu: "500m"
           livenessProbe:
             exec:
               command: ["mysqladmin", "ping", "-u", "root", "-pexample"]
-            initialDelaySeconds: 60
+            initialDelaySeconds: 180
             periodSeconds: 10
             timeoutSeconds: 5
             successThreshold: 1
@@ -47,11 +55,15 @@ spec:
           readinessProbe:
             exec:
               command: ["mysqladmin", "ping", "-u", "root", "-pexample"]
-            initialDelaySeconds: 30
+            initialDelaySeconds: 180
             periodSeconds: 10
             timeoutSeconds: 5
             successThreshold: 1
             failureThreshold: 3
+      volumes:
+        - name: usermanagement-dbcreation-script
+          configMap:
+            name: pythonlogin-init-sql
   volumeClaimTemplates:
     - metadata:
         name: mysql-data

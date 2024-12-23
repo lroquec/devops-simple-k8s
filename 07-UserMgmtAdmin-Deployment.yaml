@@ -2,19 +2,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: usermgmt-user
+  name: usermgmt-admin
   labels:
-    app: usermgmt-user
+    app: usermgmt-admin
   namespace: usermgm
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: usermgmt-user
+      app: usermgmt-admin
   template:
     metadata:
       labels:
-        app: usermgmt-user
+        app: usermgmt-admin
     spec:
       initContainers:
         - name: init-db
@@ -24,14 +24,14 @@ spec:
             - -c
             - >
               echo -e "Checking for the availability of MySQL Server deployment";
-              while ! nc -z db 3306; do
+              while ! nc -z mysql-headless.database.svc.cluster.local 3306; do
                 sleep 1;
                 printf "-";
               done;
               echo -e "  >> MySQL DB Server has started";
       containers:
-        - name: usermgmt-user
-          image: lroquec/usermgm-user:test
+        - name: usermgmt-admin
+          image: lroquec/usermgm-admin:test
           imagePullPolicy: Always
           ports:
             - containerPort: 5000

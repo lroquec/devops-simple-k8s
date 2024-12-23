@@ -13,6 +13,8 @@ spec:
         - namespaceSelector:
             matchLabels:
               name: usermgm
+        - ipBlock:
+            cidr: 127.0.0.1/32  # Allow localhost traffic
       ports:
         - protocol: TCP
           port: 3306
