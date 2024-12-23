@@ -1,20 +1,21 @@
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: db
   namespace: database
-spec: 
+spec:
   replicas: 1
   selector:
     matchLabels:
       app: db
   strategy:
-    type: Recreate 
-  template: 
-    metadata: 
-      labels: 
+    type: Recreate
+  template:
+    metadata:
+      labels:
         app: db
-    spec: 
+    spec:
       containers:
         - name: db
           image: mysql:8.0
@@ -40,7 +41,7 @@ spec:
               cpu: "500m"
           livenessProbe:
             exec:
-              command: [ "mysqladmin", "ping", "-u", "root", "-pexample" ]
+              command: ["mysqladmin", "ping", "-u", "root", "-pexample"]
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
@@ -48,13 +49,13 @@ spec:
             failureThreshold: 3
           readinessProbe:
             exec:
-              command: [ "mysqladmin", "ping", "-u", "root", "-pexample" ]
+              command: ["mysqladmin", "ping", "-u", "root", "-pexample"]
             initialDelaySeconds: 30
             periodSeconds: 10
             timeoutSeconds: 5
             successThreshold: 1
             failureThreshold: 3
-      volumes: 
+      volumes:
         - name: mysql-persistent-storage
           persistentVolumeClaim:
             claimName: nfs-mysql-pv-claim

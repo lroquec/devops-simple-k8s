@@ -1,5 +1,6 @@
+---
 apiVersion: apps/v1
-kind: Deployment 
+kind: Deployment
 metadata:
   name: usermgmt-admin
   labels:
@@ -10,15 +11,15 @@ spec:
   selector:
     matchLabels:
       app: usermgmt-admin
-  template:  
+  template:
     metadata:
-      labels: 
+      labels:
         app: usermgmt-admin
     spec:
       initContainers:
         - name: init-db
           image: busybox:1.31
-          command: 
+          command:
             - sh
             - -c
             - >
@@ -32,7 +33,7 @@ spec:
         - name: usermgmt-admin
           image: lroquec/usermgm-admin:test
           imagePullPolicy: Always
-          ports: 
+          ports:
             - containerPort: 5000
           env:
             - name: DB_HOSTNAME

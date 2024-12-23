@@ -1,0 +1,25 @@
+---
+extends: default
+
+rules:
+  # Disable the truthy rule (set to warning to reduce severity)
+  truthy:
+    level: warning
+
+  # Increase the maximum line length to 120 characters
+  line-length:
+    max: 120
+    level: warning
+
+  # Ensure 2 spaces are used for indentation
+  indentation:
+    spaces: 2
+    level: warning
+
+  # Warn if the YAML document does not start with ---
+  document-start:
+    level: warning
+
+# Skip specific files or folders
+ignore: |
+  .github/workflows/*.yml

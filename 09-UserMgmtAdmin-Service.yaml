@@ -1,14 +1,15 @@
+---
 apiVersion: v1
-kind: Service 
+kind: Service
 metadata:
   name: usermgmt-admin-service
   namespace: usermgm
 spec:
-  type: NodePort # ClusterIp, # NodePort
+  type: NodePort  # ClusterIp, # NodePort
   selector:
     app: usermgmt-admin
-  ports: 
+  ports:
     - name: http
-      port: 80 # Service Port
-      targetPort: 5000 # Container Port
-      nodePort: 31280 # Node Port
+      port: 80  # Service Port
+      targetPort: 5000  # Container Port
+      nodePort: 31280  # Node Port
