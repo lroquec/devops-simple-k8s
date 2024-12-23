@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-usermgm
+  namespace: database
+spec:
+  podSelector:
+    matchLabels:
+      app: db
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: usermgm
+    ports:
+    - protocol: TCP
+      port: 3306
