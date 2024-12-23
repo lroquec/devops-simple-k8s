@@ -139,7 +139,7 @@ Each deployment defines resource requests and limits:
   ```
 - Verify environment variables
   ```bash
-kubectl exec -it -n usermgm usermgmt-user-<hash> -- python -c "import os; print(os.getenv('MYSQL_HOST'))"
+  kubectl exec -it -n usermgm usermgmt-user-<hash> -- python -c "import os; print(os.getenv('MYSQL_HOST'))"
   ```
 
 ---
