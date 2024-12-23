@@ -1,62 +1,55 @@
-# User Management Application Deployment on Kubernetes
+# User Management System Kubernetes Deployment
 
-This repository contains the Kubernetes manifests to deploy a very simple user management application consisting of a MySQL database and two application components: Admin and User portals. Below is a detailed overview of the files and their functionality.
+This repository contains Kubernetes manifests for deploying a user management system. The system includes two main applications (`usermgmt-admin` and `usermgmt-user`), along with a MySQL database for persistence. The setup ensures secure communication and scalable deployments using Kubernetes features.
 
----
+## Table of Contents
 
-## Project Structure
+1. [Overview](#overview)
+2. [Architecture](#architecture)
+3. [Components](#components)
+4. [Prerequisites](#prerequisites)
+5. [Deployment Steps](#deployment-steps)
+6. [Key Configuration Files](#key-configuration-files)
+7. [Security Considerations](#security-considerations)
+8. [Troubleshooting](#troubleshooting)
+9. [License](#license)
 
-### 0. Namespaces
-- **File**: `00-namespace.yaml`
-- **Purpose**: Defines the namespaces for resources.
+## Overview
 
-### 1. Secrets
-- **File**: `06-UserMgmt-Secret.yaml`
-- **Purpose**: Defines the secrets required for the database connection and application security keys. Secrets are stored as base64 encoded values.
+This project provides a deployment setup for a user management system leveraging Kubernetes. The system includes:
+- Admin and user-facing services
+- MySQL as the database backend
+- NFS-backed persistent storage
 
-### 2. Storage Class
-- **File**: `01-storage-class.yaml`
-- **Purpose**: Configures an NFS storage class for dynamic provisioning of Persistent Volumes.
+## Architecture
 
-### 3. Persistent Volume Claim (PVC)
-- **File**: `02-persistent-volume-claim.yaml`
-- **Purpose**: Claims a persistent volume using the defined NFS storage class. Ensures shared storage for the MySQL database.
+The deployment follows a modular architecture:
+- **Namespaces**: Separate namespaces for application (`usermgm`) and database (`database`) to isolate workloads.
+- **StatefulSet**: Ensures stable and persistent MySQL deployment.
+- **Secrets**: Secure storage of database credentials and app secret for session management
+- **Network Policies**: Restrict communication to authorized pods.
+- **Storage Class**: NFS-based storage for persistent data.
 
-### 4. ConfigMap
-- **File**: `03-UserMgmt-ConfigMap.yaml`
-- **Purpose**: Provides an SQL script to initialize the MySQL database with the required schema and a default admin user.
+## Key Configuration Files
 
-### 5. MySQL Deployment
-- **File**: `04-mysql-deployment.yaml`
-- **Purpose**: Deploys a MySQL server with the necessary configuration for database persistence and initialization using the ConfigMap.
+- **[00-namespace.yaml](00-namespace.yaml)**: Defines namespaces for the project.
+- **[01-storage-class.yaml](01-storage-class.yaml)**: Configures NFS-based storage.
+- **[02-UserMgmt-ConfigMap.yaml](02-UserMgmt-ConfigMap.yaml)**: Database initialization script.
+- **[03-mysql-secret.yaml](03-mysql-secret.yaml)**: Database credentials (base64 encoded).
+- **[04-mysql-statefulset.yaml](04-mysql-statefulset.yaml)**: MySQL deployment as a StatefulSet.
+- **[05-mysql-clusterip-service.yaml](05-mysql-clusterip-service.yaml)**: Headless service for MySQL.
+- **[06-UserMgmt-Secret.yaml](06-UserMgmt-Secret.yaml)**: Application secrets.
+- **[07-UserMgmtAdmin-Deployment.yaml](07-UserMgmtAdmin-Deployment.yaml)**: Deployment configuration for `usermgmt-admin`.
+- **[08-UserMgmtAdmin-Service.yaml](08-UserMgmtAdmin-Service.yaml)**: Service for `usermgmt-admin`.
+- **[09-UserMgmtUser-Deployment.yaml](09-UserMgmtUser-Deployment.yaml)**: Deployment configuration for `usermgmt-user`.
+- **[10-UserMgmtUser-Service.yaml](10-UserMgmtUser-Service.yaml)**: Service for `usermgmt-user`.
+- **[11-networkpolicy-for-db.yaml](11-networkpolicy-for-db.yaml)**: Network policy for database access.
 
-### 6. MySQL ClusterIP Service
-- **File**: `05-mysql-clusterip-service.yaml`
-- **Purpose**: Creates a ClusterIP service for internal communication with the MySQL database.
+## Prerequisites
 
-### 7. Admin Component Deployment and Service
-- **Files**: 
-  - `07-UserMgmtAdmin-Deployment.yaml`
-  - `09-UserMgmtAdmin-Service.yaml`
-- **Purpose**:
-  - Deployment: Defines the Admin component with environment variables from the Secret, readiness, and liveness probes.
-  - Service: Exposes the Admin component via NodePort.
-
-### 8. User Component Deployment and Service
-- **Files**: 
-  - `08-UserMgmtUser-Deployment.yaml`
-  - `10-UserMgmtUser-Service.yaml`
-- **Purpose**:
-  - Deployment: Defines the User component with similar configurations to the Admin component.
-  - Service: Exposes the User component via NodePort.
-
-### 9. Network policy for db
-- **Files**: 
-  - `11-networkpolicy-for-db.yaml`
-- **Purpose**:
-  -  Restrict MySQL access, allowing only connections from the `usermgm` namespace to the database in the `database` namespace.
-
----
+- Kubernetes cluster (v1.20+ recommended)
+- NFS server for persistent storage
+- Access to Docker images for `usermgmt-admin` and `usermgmt-user`
 
 ## Deployment Steps
 
@@ -69,34 +62,34 @@ This repository contains the Kubernetes manifests to deploy a very simple user m
    ```bash
    kubectl apply -f 01-storage-class.yaml
    ```
-2. **Create the Persistent Volume Claim**:
+2. **Create the ConfigMap**:
    ```bash
-   kubectl apply -f 02-persistent-volume-claim.yaml
+   kubectl apply -f 02-UserMgmt-ConfigMap.yaml
    ```
-3. **Create the ConfigMap**:
+3. **Deploy the MySQL Server Secret**:
    ```bash
-   kubectl apply -f 03-UserMgmt-ConfigMap.yaml
+   kubectl apply -f 03-mysql-secret.yaml
    ```
 4. **Deploy the MySQL Server**:
    ```bash
-   kubectl apply -f 04-mysql-deployment.yaml
+   kubectl apply -f 04-mysql-statefulset.yaml
    ```
 5. **Expose MySQL Server**:
    ```bash
    kubectl apply -f 05-mysql-clusterip-service.yaml
    ```
-6. **Create the Secrets**:
+6. **Create the Secret for app**:
    ```bash
    kubectl apply -f 06-UserMgmt-Secret.yaml
    ```
 7. **Deploy and Expose the Admin Component**:
    ```bash
    kubectl apply -f 07-UserMgmtAdmin-Deployment.yaml
-   kubectl apply -f 09-UserMgmtAdmin-Service.yaml
+   kubectl apply -f 08-UserMgmtAdmin-Service.yaml
    ```
 8. **Deploy and Expose the User Component**:
    ```bash
-   kubectl apply -f 08-UserMgmtUser-Deployment.yaml
+   kubectl apply -f 09-UserMgmtUser-Deployment.yaml
    kubectl apply -f 10-UserMgmtUser-Service.yaml
    ```
 9. **Deploy the Network Policy Component**:
@@ -137,7 +130,19 @@ Each deployment defines resource requests and limits:
    Navigate to the Node's IP address and the port specified in `usermgmt-user-service` (default: 31281).
 
 ---
+## Troubleshooting
 
+- Verify the status of all pods:
+  ```bash
+  kubectl get pods -n usermgm
+  kubectl get pods -n database
+  ```
+- Verify environment variables
+  ```bash
+kubectl exec -it -n usermgm usermgmt-user-<hash> -- python -c "import os; print(os.getenv('MYSQL_HOST'))"
+  ```
+
+---
 ## Notes
 
 - Ensure that the NFS server specified in the `01-storage-class.yaml` file is reachable.
