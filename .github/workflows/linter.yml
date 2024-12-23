@@ -1,0 +1,45 @@
+---
+name: Linter Workflow
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Run Linters
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Set up Python (if applicable)
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      # Install dependencies
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 yamllint
+
+      # Run Flake8 for Python files
+      - name: Run Python linter (flake8)
+        run: |
+          flake8 .
+
+      # Run YAML linter
+      - name: Run YAML linter (yamllint)
+        run: |
+          yamllint .
