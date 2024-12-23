@@ -1,34 +1,31 @@
 ---
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
-  name: db
+  name: mysql
   namespace: database
 spec:
+  serviceName: mysql-headless  # Headless Service for stable network identities
   replicas: 1
   selector:
     matchLabels:
       app: db
-  strategy:
-    type: Recreate
   template:
     metadata:
       labels:
         app: db
     spec:
       containers:
-        - name: db
+        - name: mysql
           image: mysql:8.0
-          env:
-            - name: MYSQL_ROOT_PASSWORD
-              value: example
-            - name: MYSQL_DATABASE
-              value: pythonlogin
+          envFrom:
+            - configMapRef:
+                name: pythonlogin-init-sql  # Configuration for database initialization
           ports:
             - containerPort: 3306
               name: mysql
           volumeMounts:
-            - name: mysql-persistent-storage
+            - name: mysql-data
               mountPath: /var/lib/mysql
             - name: usermanagement-dbcreation-script
               mountPath: /docker-entrypoint-initdb.d
@@ -55,10 +52,12 @@ spec:
             timeoutSeconds: 5
             successThreshold: 1
             failureThreshold: 3
-      volumes:
-        - name: mysql-persistent-storage
-          persistentVolumeClaim:
-            claimName: nfs-mysql-pv-claim
-        - name: usermanagement-dbcreation-script
-          configMap:
-            name: usermanagement-dbcreation-script
+  volumeClaimTemplates:
+    - metadata:
+        name: mysql-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
+        storageClassName: nfs-csi
