@@ -36,7 +36,7 @@ spec:
           ports:
             - containerPort: 5000
           env:
-            - name: DB_HOSTNAME
+            - name: MYSQL_HOST
               valueFrom:
                 secretKeyRef:
                   name: usermgmt-webapp-secret
@@ -46,17 +46,17 @@ spec:
                 secretKeyRef:
                   name: usermgmt-webapp-secret
                   key: DB_PORT
-            - name: DB_NAME
+            - name: MYSQL_DB
               valueFrom:
                 secretKeyRef:
                   name: usermgmt-webapp-secret
                   key: DB_NAME
-            - name: DB_USERNAME
+            - name: MYSQL_USER
               valueFrom:
                 secretKeyRef:
                   name: usermgmt-webapp-secret
                   key: DB_USERNAME
-            - name: DB_PASSWORD
+            - name: MYSQL_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: usermgmt-webapp-secret
