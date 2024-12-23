@@ -4,6 +4,7 @@ metadata:
   name: usermgmt-user
   labels:
     app: usermgmt-user
+  namespace: usermgm
 spec:
   replicas: 1
   selector:
