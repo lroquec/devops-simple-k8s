@@ -17,6 +17,7 @@ spec:
         app: usermgmt-admin
     spec:
       priorityClassName: usermgmt-admin-priority
+      serviceAccountName: usermgmt-admin-sa
       initContainers:
         - name: init-db
           image: busybox:1.31
