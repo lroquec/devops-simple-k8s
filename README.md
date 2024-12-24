@@ -1,5 +1,12 @@
 # Kubernetes Learning Project: User Management System
 
+This repository contains the Kubernetes manifests for deploying a user management application. It works in conjunction with:
+
+- Application Code Repository: [devops-simple](https://github.com/lroquec/devops-simple)
+  - Contains the application source code
+  - Handles CI pipeline with GitHub Actions
+  - Automatically updates image tags in this repository
+
 This project demonstrates various Kubernetes concepts by deploying a simple user management application. It's designed for learning purposes, showing how different Kubernetes components work together.
 
 ## Project Overview
@@ -8,6 +15,8 @@ A simple web application with:
 - User interface for regular users
 - Admin interface for administrators
 - MySQL database backend
+- Automated CI/CD pipeline using GitHub Actions
+- GitOps deployment using ArgoCD
 
 ## Kubernetes Concepts Demonstrated
 
@@ -188,5 +197,36 @@ After understanding this project, you can:
 3. Add monitoring and logging
 4. Explore Kubernetes Ingress
 5. Learn about ConfigMap and Secret updates
+6. Explore CI/CD integration with GitHub Actions
+7. Understand GitOps principles with ArgoCD
 
-Remember: This is a learning project focused on demonstrating Kubernetes concepts. Additional security and reliability features would be needed for production use.
+# Continuous Integration and Deployment
+
+This project demonstrates a complete CI/CD pipeline using GitHub Actions and ArgoCD.
+
+## GitHub Actions Integration
+
+The container images used in this project (`usermgm-admin` and `usermgm-user`) are automatically built and updated through a GitHub Actions workflow in the application code repository: [devops-simple](https://github.com/lroquec/devops-simple)
+
+The workflow:
+1. Builds new container images when changes are pushed
+2. Updates the image tags in this Kubernetes manifests repository
+3. Ensures our deployment always uses the latest version of the application
+
+## ArgoCD Deployment
+
+The project is deployed and managed using ArgoCD, demonstrating GitOps principles:
+
+- ArgoCD monitors this repository for changes
+- When manifests are updated (either manually or via GitHub Actions):
+  - ArgoCD automatically detects the changes
+  - Applies the new configurations to the cluster
+  - Ensures the desired state matches the actual state
+
+This setup demonstrates:
+- GitOps workflow in practice
+- Automated deployment pipeline
+- Infrastructure as Code principles
+- Continuous deployment capabilities
+
+Remember: This is a learning project focused on demonstrating Kubernetes concepts, CI/CD practices, and GitOps principles. Additional security and reliability features would be needed for production use.
