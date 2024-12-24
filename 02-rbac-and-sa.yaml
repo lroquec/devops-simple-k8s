@@ -4,40 +4,62 @@ kind: ServiceAccount
 metadata:
   name: usermgmt-admin-sa
   namespace: usermgm
+  labels:
+    app.kubernetes.io/instance: usermgm
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: usermgmt-user-sa
   namespace: usermgm
+  labels:
+    app.kubernetes.io/instance: usermgm
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: mysql-sa
   namespace: database
+  labels:
+    app.kubernetes.io/instance: usermgm
 ---
+# Role for accessing metrics in usermgm namespace
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: usermgmt-role
+  name: pod-metrics-reader
   namespace: usermgm
+  labels:
+    app.kubernetes.io/instance: usermgm
 rules:
 - apiGroups: [""]
-  resources: ["pods", "services", "endpoints"]
-  verbs: ["get", "list", "watch"]
-- apiGroups: [""]
-  resources: ["configmaps"]
-  verbs: ["get"]
+  resources: ["pods"]
+  verbs: ["get", "list"]
 - apiGroups: ["metrics.k8s.io"]
   resources: ["pods"]
   verbs: ["get", "list"]
 ---
+# Role for accessing MySQL in database namespace
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: mysql-access
+  namespace: database
+  labels:
+    app.kubernetes.io/instance: usermgm
+rules:
+- apiGroups: [""]
+  resources: ["services", "endpoints", "pods"]
+  verbs: ["get", "list", "watch"]
+---
+# RoleBinding for metrics in usermgm namespace
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: usermgmt-rolebinding
+  name: pod-metrics-reader-binding
   namespace: usermgm
+  labels:
+    app.kubernetes.io/instance: usermgm
 subjects:
 - kind: ServiceAccount
   name: usermgmt-admin-sa
@@ -47,22 +69,17 @@ subjects:
   namespace: usermgm
 roleRef:
   kind: Role
-  name: usermgmt-role
+  name: pod-metrics-reader
   apiGroup: rbac.authorization.k8s.io
 ---
+# RoleBinding for MySQL access in database namespace
 apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
+kind: RoleBinding
 metadata:
-  name: pod-dns-resolver
-rules:
-- apiGroups: [""]
-  resources: ["services", "endpoints", "pods"]
-  verbs: ["get", "list", "watch"]
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: pod-dns-resolver-binding
+  name: mysql-access-binding
+  namespace: database
+  labels:
+    app.kubernetes.io/instance: usermgm
 subjects:
 - kind: ServiceAccount
   name: usermgmt-admin-sa
@@ -71,6 +88,6 @@ subjects:
   name: usermgmt-user-sa
   namespace: usermgm
 roleRef:
-  kind: ClusterRole
-  name: pod-dns-resolver
+  kind: Role
+  name: mysql-access
   apiGroup: rbac.authorization.k8s.io
