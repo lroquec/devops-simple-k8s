@@ -32,7 +32,7 @@ spec:
               echo -e "  >> MySQL DB Server has started";
       containers:
         - name: usermgmt-admin
-          image: lroquec/usermgm-admin:test
+          image: lroquec/usermgm-admin:8497d48198bd1e4ad50d554f34bbb7aeb8076ed0
           imagePullPolicy: Always
           ports:
             - containerPort: 5000
