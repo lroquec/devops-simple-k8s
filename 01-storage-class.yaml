@@ -6,7 +6,7 @@ metadata:
 provisioner: nfs.csi.k8s.io
 parameters:
   server: 192.168.4.36
-  share: /mnt/pve/hdd/nfs_share/
+  share: /var/lib/vz/nfs-export/
 reclaimPolicy: Delete
 volumeBindingMode: Immediate
 mountOptions:
