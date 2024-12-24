@@ -1,146 +1,230 @@
-# User Management System Kubernetes Deployment
+# Kubernetes User Management System
 
-This repository contains Kubernetes manifests for deploying a user management system. The system includes two main applications (`usermgmt-admin` and `usermgmt-user`), along with a MySQL database for persistence. The setup ensures secure communication and scalable deployments using Kubernetes features.
+A comprehensive user management system deployed on Kubernetes, featuring separate user and admin interfaces with a MySQL backend. The system is designed with security, scalability, and reliability in mind.
 
-## Table of Contents
+## Architecture Overview
 
-1. [Overview](#overview)
-2. [Architecture](#architecture)
-3. [Components](#components)
-4. [Prerequisites](#prerequisites)
-5. [Deployment Steps](#deployment-steps)
-6. [Key Configuration Files](#key-configuration-files)
-7. [Security Considerations](#security-considerations)
-8. [Troubleshooting](#troubleshooting)
-9. [License](#license)
+The system is divided into two main namespaces:
+- `usermgm`: Contains the user-facing and admin-facing applications
+- `database`: Houses the MySQL database and related components
 
-## Overview
+### Key Components
 
-This project provides a deployment setup for a user management system leveraging Kubernetes. The system includes:
-- Admin and user-facing services
-- MySQL as the database backend
-- NFS-backed persistent storage
+1. **User Interface**
+   - Deployment: `usermgmt-user`
+   - Service: NodePort access on port 31281
+   - Handles regular user interactions
+   - Higher priority class for better resource allocation
 
-## Architecture
+2. **Admin Interface**
+   - Deployment: `usermgmt-admin`
+   - Service: NodePort access on port 31280
+   - Manages administrative functions
+   - Lower priority class for resource efficiency
 
-The deployment follows a modular architecture:
-- **Namespaces**: Separate namespaces for application (`usermgm`) and database (`database`) to isolate workloads.
-- **StatefulSet**: Ensures stable and persistent MySQL deployment.
-- **Secrets**: Secure storage of database credentials and app secret for session management
-- **Network Policies**: Restrict communication to authorized pods.
-- **Storage Class**: NFS-based storage for persistent data.
-
-## Key Configuration Files
-
-- **[00-namespace.yaml](00-namespace.yaml)**: Defines namespaces for the project.
-- **[01-storage-class.yaml](01-storage-class.yaml)**: Configures NFS-based storage.
-- **[02-UserMgmt-ConfigMap.yaml](02-UserMgmt-ConfigMap.yaml)**: Database initialization script.
-- **[03-mysql-secret.yaml](03-mysql-secret.yaml)**: Database credentials (base64 encoded).
-- **[04-mysql-statefulset.yaml](04-mysql-statefulset.yaml)**: MySQL deployment as a StatefulSet.
-- **[05-mysql-clusterip-service.yaml](05-mysql-clusterip-service.yaml)**: Headless service for MySQL.
-- **[06-UserMgmt-Secret.yaml](06-UserMgmt-Secret.yaml)**: Application secrets.
-- **[07-UserMgmtAdmin-Deployment.yaml](07-UserMgmtAdmin-Deployment.yaml)**: Deployment configuration for `usermgmt-admin`.
-- **[08-UserMgmtAdmin-Service.yaml](08-UserMgmtAdmin-Service.yaml)**: Service for `usermgmt-admin`.
-- **[09-UserMgmtUser-Deployment.yaml](09-UserMgmtUser-Deployment.yaml)**: Deployment configuration for `usermgmt-user`.
-- **[10-UserMgmtUser-Service.yaml](10-UserMgmtUser-Service.yaml)**: Service for `usermgmt-user`.
-- **[11-networkpolicy-for-db.yaml](11-networkpolicy-for-db.yaml)**: Network policy for database access.
+3. **Database**
+   - StatefulSet: MySQL 8.0
+   - Persistent storage using NFS-CSI
+   - Headless service for stable networking
+   - Automated initialization with user schema
 
 ## Prerequisites
 
-- Kubernetes cluster (v1.20+ recommended)
-- NFS server for persistent storage
-- Access to Docker images for `usermgmt-admin` and `usermgmt-user`
+- Kubernetes cluster (version 1.20+)
+- NFS server configured and accessible
+- CSI driver support
+- `kubectl` configured with cluster access
 
-## Deployment Steps
+## Security Features
 
-0. **Create the namespace resources**:
-   ```bash
-   kubectl apply -f 00-namespace.yaml
-   ```
+### Network Security
+- Network policies restrict database access to the `usermgm` namespace
+- Pod security policies enforced at namespace level
+- All containers run as non-root
+- Capability restrictions applied
 
-1. **Create the Storage Class**:
-   ```bash
-   kubectl apply -f 01-storage-class.yaml
-   ```
-2. **Create the ConfigMap**:
-   ```bash
-   kubectl apply -f 02-UserMgmt-ConfigMap.yaml
-   ```
-3. **Deploy the MySQL Server Secret**:
-   ```bash
-   kubectl apply -f 03-mysql-secret.yaml
-   ```
-4. **Deploy the MySQL Server**:
-   ```bash
-   kubectl apply -f 04-mysql-statefulset.yaml
-   ```
-5. **Expose MySQL Server**:
-   ```bash
-   kubectl apply -f 05-mysql-clusterip-service.yaml
-   ```
-6. **Create the Secret for app**:
-   ```bash
-   kubectl apply -f 06-UserMgmt-Secret.yaml
-   ```
-7. **Deploy and Expose the Admin Component**:
-   ```bash
-   kubectl apply -f 07-UserMgmtAdmin-Deployment.yaml
-   kubectl apply -f 08-UserMgmtAdmin-Service.yaml
-   ```
-8. **Deploy and Expose the User Component**:
-   ```bash
-   kubectl apply -f 09-UserMgmtUser-Deployment.yaml
-   kubectl apply -f 10-UserMgmtUser-Service.yaml
-   ```
-9. **Deploy the Network Policy Component**:
-   ```bash
-   kubectl apply -f 11-networkpolicy-for-db.yaml
-   ```
+### Data Security
+- Secrets management for sensitive configuration
+- Encrypted database passwords
+- Secure communication between components
+- Base64 encoded sensitive data
+
+### Resource Management
+- Namespace-level resource quotas
+- Priority classes for workload management
+- CPU and memory limits for all containers
+- Guaranteed QoS classes where needed
+
+## Installation
+
+### 1. Create Namespaces and Resource Quotas
+```bash
+kubectl apply -f 00-namespaces-resourcesq.yaml
+```
+
+### 2. Configure Storage
+```bash
+kubectl apply -f 01-storage-class.yaml
+```
+
+### 3. Set Up Database
+```bash
+kubectl apply -f 02-UserMgmt-ConfigMap.yaml
+kubectl apply -f 03-mysql-secret.yaml
+kubectl apply -f 04-mysql-statefulset.yaml
+kubectl apply -f 05-mysql-clusterip-service.yaml
+```
+
+### 4. Deploy Applications
+```bash
+kubectl apply -f 06-UserMgmt-Secret.yaml
+kubectl apply -f 07-UserMgmtAdmin-Deployment.yaml
+kubectl apply -f 08-UserMgmtAdmin-Service.yaml
+kubectl apply -f 09-UserMgmtUser-Deployment.yaml
+kubectl apply -f 10-UserMgmtUser-Service.yaml
+```
+
+### 5. Apply Network Policies
+```bash
+kubectl apply -f 11-networkpolicy-for-db.yaml
+```
+
 ## Configuration Details
 
-### Environment Variables
-Environment variables for both Admin and User components are sourced from `06-UserMgmt-Secret.yaml`. These include:
-- `DB_HOSTNAME`
-- `DB_PORT`
-- `DB_NAME`
-- `DB_USERNAME`
-- `DB_PASSWORD`
-- `SECRET_KEY`
+### Resource Quotas
 
-### Database Initialization
-The database schema and initial admin user are created using the SQL script defined in `03-UserMgmt-ConfigMap.yaml`.
+#### Database Namespace
+```yaml
+requests.cpu: "1000m"
+requests.memory: "2048Mi"
+limits.cpu: "2000m"
+limits.memory: "4Gi"
+pods: "4"
+```
 
-### Resource Allocation
-Each deployment defines resource requests and limits:
-- **Requests**: 
-  - Memory: `64Mi`
-  - CPU: `250m`
-- **Limits**: 
-  - Memory: `128Mi`
-  - CPU: `500m`
+#### User Management Namespace
+User Workloads:
+```yaml
+requests.cpu: "2500m"
+requests.memory: "640Mi"
+limits.cpu: "5000m"
+limits.memory: "1280Mi"
+pods: "10"
+```
 
----
+Admin Workloads:
+```yaml
+requests.cpu: "500m"
+requests.memory: "128Mi"
+limits.cpu: "1000m"
+limits.memory: "256Mi"
+pods: "2"
+```
 
-## Testing the Application
+### Storage Configuration
 
-1. **Access the Admin Interface**:
-   Navigate to the Node's IP address and the port specified in `usermgmt-admin-service` (default: 31280).
+The system uses NFS storage with the following specifications:
+```yaml
+provisioner: nfs.csi.k8s.io
+parameters:
+  server: 192.168.4.36
+  share: /var/lib/vz/nfs-export/
+```
 
-2. **Access the User Interface**:
-   Navigate to the Node's IP address and the port specified in `usermgmt-user-service` (default: 31281).
+## Access Information
 
----
+### User Interface
+- NodePort: 31281
+- Internal Service Port: 81
+- Container Port: 5000
+
+### Admin Interface
+- NodePort: 31280
+- Internal Service Port: 80
+- Container Port: 5000
+
+### Database
+- Internal Service: mysql-headless.database.svc.cluster.local
+- Port: 3306
+
+## Monitoring and Health Checks
+
+All components include:
+- Liveness probes
+- Readiness probes
+- Resource monitoring
+- Init container checks for dependencies
+
+### Probe Configuration
+```yaml
+livenessProbe:
+  httpGet:
+    path: /
+    port: 5000
+  initialDelaySeconds: 5
+  periodSeconds: 10
+```
+
+## Default Credentials
+
+> ⚠️ **Important**: Change these credentials in your own environment
+
+Admin user:
+- Username: admin
+- Password: myVerysecurepass531.
+- Email: admin@example.com
+
 ## Troubleshooting
 
-- Verify the status of all pods:
-  ```bash
-  kubectl get pods -n usermgm
-  kubectl get pods -n database
-  ```
-- Verify environment variables
-  ```bash
-  kubectl exec -it -n usermgm usermgmt-user-<hash> -- python -c "import os; print(os.getenv('MYSQL_HOST'))"
-  ```
+### Common Issues
+
+1. **Database Connection Failures**
+   - Verify network policy is applied
+   - Check secret configuration
+   - Ensure database pod is running
+
+2. **Storage Issues**
+   - Verify NFS server accessibility
+   - Check PVC status
+   - Validate storage class configuration
+
+3. **Resource Constraints**
+   - Monitor namespace quotas
+   - Check pod resource usage
+   - Verify priority class assignment
+
+### Debugging Commands
+
+```bash
+# Check pod status
+kubectl get pods -n usermgm
+kubectl get pods -n database
+
+# View logs
+kubectl logs -n usermgm deployment/usermgmt-user
+kubectl logs -n usermgm deployment/usermgmt-admin
+kubectl logs -n database statefulset/mysql
+
+# Check resources
+kubectl describe quota -n usermgm
+kubectl describe quota -n database
+```
+
+## Maintenance
+
+### Backup Procedures
+
+1. Database Backups
+```bash
+kubectl exec -n database mysql-0 -- mysqldump -u root -p${MYSQL_ROOT_PASSWORD} pythonlogin > backup.sql
+```
+
+### Scaling
+
+The system can be scaled by adjusting:
+- Deployment replicas for user/admin interfaces
+- Resource quotas for namespaces
+- Storage capacity for database
 
 ---
 ## Notes
