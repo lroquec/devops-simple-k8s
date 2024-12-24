@@ -20,12 +20,15 @@ metadata:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: pod-metrics-reader
+  name: usermgmt-role
   namespace: usermgm
 rules:
 - apiGroups: [""]
-  resources: ["pods"]
-  verbs: ["get", "list"]
+  resources: ["pods", "services", "endpoints"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get"]
 - apiGroups: ["metrics.k8s.io"]
   resources: ["pods"]
   verbs: ["get", "list"]
@@ -33,27 +36,41 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: pod-metrics-reader-binding-admin
+  name: usermgmt-rolebinding
   namespace: usermgm
 subjects:
 - kind: ServiceAccount
   name: usermgmt-admin-sa
   namespace: usermgm
-roleRef:
-  kind: Role
-  name: pod-metrics-reader
-  apiGroup: rbac.authorization.k8s.io
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: pod-metrics-reader-binding-user
-  namespace: usermgm
-subjects:
 - kind: ServiceAccount
   name: usermgmt-user-sa
   namespace: usermgm
 roleRef:
   kind: Role
-  name: pod-metrics-reader
+  name: usermgmt-role
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: pod-dns-resolver
+rules:
+- apiGroups: [""]
+  resources: ["services", "endpoints", "pods"]
+  verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: pod-dns-resolver-binding
+subjects:
+- kind: ServiceAccount
+  name: usermgmt-admin-sa
+  namespace: usermgm
+- kind: ServiceAccount
+  name: usermgmt-user-sa
+  namespace: usermgm
+roleRef:
+  kind: ClusterRole
+  name: pod-dns-resolver
   apiGroup: rbac.authorization.k8s.io
