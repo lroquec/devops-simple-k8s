@@ -30,6 +30,21 @@ spec:
                 printf "-";
               done;
               echo -e "  >> MySQL DB Server has started";
+          # Resource limits
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "250m"
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ['ALL']
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
       containers:
         - name: usermgmt-admin
           image: lroquec/usermgm-admin:8497d48198bd1e4ad50d554f34bbb7aeb8076ed0
