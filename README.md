@@ -1,235 +1,192 @@
-# Kubernetes User Management System
+# Kubernetes Learning Project: User Management System
 
-A comprehensive user management system deployed on Kubernetes, featuring separate user and admin interfaces with a MySQL backend. The system is designed with security, scalability, and reliability in mind.
+This project demonstrates various Kubernetes concepts by deploying a simple user management application. It's designed for learning purposes, showing how different Kubernetes components work together.
 
-## Architecture Overview
+## Project Overview
 
-The system is divided into two main namespaces:
-- `usermgm`: Contains the user-facing and admin-facing applications
-- `database`: Houses the MySQL database and related components
+A simple web application with:
+- User interface for regular users
+- Admin interface for administrators
+- MySQL database backend
 
-### Key Components
+## Kubernetes Concepts Demonstrated
 
-1. **User Interface**
-   - Deployment: `usermgmt-user`
-   - Service: NodePort access on port 31281
-   - Handles regular user interactions
-   - Higher priority class for better resource allocation
+### 1. Namespaces and Resource Management
+File: `00-namespaces-resourcesq.yaml`
 
-2. **Admin Interface**
-   - Deployment: `usermgmt-admin`
-   - Service: NodePort access on port 31280
-   - Manages administrative functions
-   - Lower priority class for resource efficiency
+This manifest shows how to:
+- Create separate namespaces for different application components
+- Configure resource quotas to limit resource usage per namespace
+- Set up priority classes for different types of workloads
 
-3. **Database**
-   - StatefulSet: MySQL 8.0
-   - Persistent storage using NFS-CSI
-   - Headless service for stable networking
-   - Automated initialization with user schema
-
-## Prerequisites
-
-- Kubernetes cluster (version 1.20+)
-- NFS server configured and accessible
-- CSI driver support
-- `kubectl` configured with cluster access
-
-## Security Features
-
-### Network Security
-- Network policies restrict database access to the `usermgm` namespace
-- Pod security policies enforced at namespace level
-- All containers run as non-root
-- Capability restrictions applied
-
-### Data Security
-- Secrets management for sensitive configuration
-- Encrypted database passwords
-- Secure communication between components
-- Base64 encoded sensitive data
-
-### Resource Management
-- Namespace-level resource quotas
-- Priority classes for workload management
-- CPU and memory limits for all containers
-- Guaranteed QoS classes where needed
-
-## Installation
-
-### 1. Create Namespaces and Resource Quotas
 ```bash
+# Create namespaces and quotas
 kubectl apply -f 00-namespaces-resourcesq.yaml
 ```
 
-### 2. Configure Storage
+### 2. Storage Configuration
+File: `01-storage-class.yaml`
+
+Demonstrates:
+- How to configure a StorageClass for persistent storage
+- Using NFS as a storage provider
+- Setting up storage parameters and reclaim policies
+
+To use in your cluster:
+1. Update the NFS server IP and path in the manifest
+```yaml
+parameters:
+  server: YOUR_NFS_SERVER_IP
+  share: YOUR_NFS_SHARE_PATH
+```
+2. Apply the configuration:
 ```bash
 kubectl apply -f 01-storage-class.yaml
 ```
 
-### 3. Set Up Database
+### 3. ConfigMaps for Database Initialization
+File: `02-UserMgmt-ConfigMap.yaml`
+
+Shows how to:
+- Use ConfigMaps to store non-sensitive configuration
+- Initialize a database with schema and default data
+- Mount ConfigMap data as files in pods
+
+### 4. Secrets Management
+Files: `03-mysql-secret.yaml`, `06-UserMgmt-Secret.yaml`
+
+Demonstrates:
+- Storing sensitive information in Kubernetes Secrets
+- Using base64 encoding for secret values
+- Referencing secrets in pod configurations
+
+To adapt for your use:
+1. Generate your own base64 encoded values:
 ```bash
-kubectl apply -f 02-UserMgmt-ConfigMap.yaml
+echo -n 'your-value' | base64
+```
+2. Replace the values in the secret manifests
+3. Apply the secrets:
+```bash
 kubectl apply -f 03-mysql-secret.yaml
-kubectl apply -f 04-mysql-statefulset.yaml
-kubectl apply -f 05-mysql-clusterip-service.yaml
-```
-
-### 4. Deploy Applications
-```bash
 kubectl apply -f 06-UserMgmt-Secret.yaml
-kubectl apply -f 07-UserMgmtAdmin-Deployment.yaml
-kubectl apply -f 08-UserMgmtAdmin-Service.yaml
-kubectl apply -f 09-UserMgmtUser-Deployment.yaml
-kubectl apply -f 10-UserMgmtUser-Service.yaml
 ```
 
-### 5. Apply Network Policies
+### 5. Stateful Applications
+File: `04-mysql-statefulset.yaml`
+
+Demonstrates:
+- Using StatefulSets for stateful applications
+- Configuring persistent storage with PVC templates
+- Setting up health checks (liveness and readiness probes)
+- Resource requests and limits
+- Using init containers
+
+Key learning points:
+- Why StatefulSet is used instead of Deployment for databases
+- How volume claims work with StatefulSets
+- Importance of health checks
+- Resource management at pod level
+
+### 6. Service Types
+Files: `05-mysql-clusterip-service.yaml`, `08-UserMgmtAdmin-Service.yaml`, `10-UserMgmtUser-Service.yaml`
+
+Shows different types of Kubernetes services:
+- Headless service for StatefulSet
+- NodePort services for external access
+- How services enable internal communication
+
+### 7. Deployments
+Files: `07-UserMgmtAdmin-Deployment.yaml`, `09-UserMgmtUser-Deployment.yaml`
+
+Demonstrates:
+- Basic deployment configuration
+- Using environment variables from secrets
+- Container security context
+- Pod priority classes
+- Init containers for dependency checking
+
+### 8. Network Policies
+File: `11-networkpolicy-for-db.yaml`
+
+Shows how to:
+- Restrict pod-to-pod communication
+- Configure namespace-based network policies
+- Allow specific ports and protocols
+
+## How to Use This Project
+
+1. Clone the repository
+2. Modify the configurations as needed:
+   - Update NFS server details in storage class
+   - Change NodePort values if needed
+   - Update secret values
+   
+3. Apply the manifests in order:
 ```bash
-kubectl apply -f 11-networkpolicy-for-db.yaml
+# Apply manifests in sequence
+for f in *.yaml; do kubectl apply -f $f; done
 ```
 
-## Configuration Details
-
-### Resource Quotas
-
-#### Database Namespace
-```yaml
-requests.cpu: "1000m"
-requests.memory: "2048Mi"
-limits.cpu: "2000m"
-limits.memory: "4Gi"
-pods: "4"
-```
-
-#### User Management Namespace
-User Workloads:
-```yaml
-requests.cpu: "2500m"
-requests.memory: "640Mi"
-limits.cpu: "5000m"
-limits.memory: "1280Mi"
-pods: "10"
-```
-
-Admin Workloads:
-```yaml
-requests.cpu: "500m"
-requests.memory: "128Mi"
-limits.cpu: "1000m"
-limits.memory: "256Mi"
-pods: "2"
-```
-
-### Storage Configuration
-
-The system uses NFS storage with the following specifications:
-```yaml
-provisioner: nfs.csi.k8s.io
-parameters:
-  server: 192.168.4.36
-  share: /var/lib/vz/nfs-export/
-```
-
-## Access Information
-
-### User Interface
-- NodePort: 31281
-- Internal Service Port: 81
-- Container Port: 5000
-
-### Admin Interface
-- NodePort: 31280
-- Internal Service Port: 80
-- Container Port: 5000
-
-### Database
-- Internal Service: mysql-headless.database.svc.cluster.local
-- Port: 3306
-
-## Monitoring and Health Checks
-
-All components include:
-- Liveness probes
-- Readiness probes
-- Resource monitoring
-- Init container checks for dependencies
-
-### Probe Configuration
-```yaml
-livenessProbe:
-  httpGet:
-    path: /
-    port: 5000
-  initialDelaySeconds: 5
-  periodSeconds: 10
-```
-
-## Default Credentials
-
-> ⚠️ **Important**: Change these credentials in your own environment
-
-Admin user:
-- Username: admin
-- Password: myVerysecurepass531.
-- Email: admin@example.com
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Database Connection Failures**
-   - Verify network policy is applied
-   - Check secret configuration
-   - Ensure database pod is running
-
-2. **Storage Issues**
-   - Verify NFS server accessibility
-   - Check PVC status
-   - Validate storage class configuration
-
-3. **Resource Constraints**
-   - Monitor namespace quotas
-   - Check pod resource usage
-   - Verify priority class assignment
-
-### Debugging Commands
-
+4. Verify the deployment:
 ```bash
-# Check pod status
+# Check namespaces
+kubectl get ns
+
+# Check pods in each namespace
 kubectl get pods -n usermgm
 kubectl get pods -n database
 
-# View logs
-kubectl logs -n usermgm deployment/usermgmt-user
-kubectl logs -n usermgm deployment/usermgmt-admin
-kubectl logs -n database statefulset/mysql
-
-# Check resources
-kubectl describe quota -n usermgm
-kubectl describe quota -n database
+# Check services
+kubectl get svc -n usermgm
+kubectl get svc -n database
 ```
 
-## Maintenance
+## Learning Exercises
 
-### Backup Procedures
-
-1. Database Backups
+1. Try scaling the deployments:
 ```bash
-kubectl exec -n database mysql-0 -- mysqldump -u root -p${MYSQL_ROOT_PASSWORD} pythonlogin > backup.sql
+kubectl scale deployment usermgmt-user -n usermgm --replicas=3
 ```
 
-### Scaling
+2. Test resource quotas:
+```bash
+kubectl describe quota -n usermgm
+```
 
-The system can be scaled by adjusting:
-- Deployment replicas for user/admin interfaces
-- Resource quotas for namespaces
-- Storage capacity for database
+3. Experiment with network policies:
+```bash
+kubectl get networkpolicies -n database
+```
 
----
-## Notes
+4. Examine pod logs:
+```bash
+kubectl logs -n usermgm deployment/usermgmt-user
+```
 
-- Ensure that the NFS server specified in the `01-storage-class.yaml` file is reachable.
-- The base64 encoded values in the Secret file can be updated using the command:
-  ```bash
-  echo -n 'value' | base64
+## Understanding Pod Scheduling
+
+The project uses priority classes to demonstrate pod scheduling:
+- Higher priority for user-facing components
+- Lower priority for admin components
+
+Try creating pods when resources are constrained to see how priority affects scheduling.
+
+## Clean Up
+
+To remove all resources:
+```bash
+# Delete namespaces (this will delete all resources within them)
+kubectl delete ns usermgm database
+```
+
+## Next Steps for Learning
+
+After understanding this project, you can:
+1. Add more complex network policies
+2. Implement horizontal pod autoscaling
+3. Add monitoring and logging
+4. Explore Kubernetes Ingress
+5. Learn about ConfigMap and Secret updates
+
+Remember: This is a learning project focused on demonstrating Kubernetes concepts. Additional security and reliability features would be needed for production use.
