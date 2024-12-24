@@ -16,6 +16,7 @@ spec:
       labels:
         app: usermgmt-user
     spec:
+      priorityClassName: usermgmt-user-priority
       initContainers:
         - name: init-db
           image: busybox:1.31
@@ -93,3 +94,10 @@ spec:
             limits:
               memory: "128Mi"
               cpu: "500m"
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ['ALL']
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
