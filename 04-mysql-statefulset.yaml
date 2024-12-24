@@ -47,7 +47,7 @@ spec:
           livenessProbe:
             exec:
               command: ["mysqladmin", "ping", "-u", "root", "-pexample"]
-            initialDelaySeconds: 180
+            initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
             successThreshold: 1
@@ -55,7 +55,7 @@ spec:
           readinessProbe:
             exec:
               command: ["mysqladmin", "ping", "-u", "root", "-pexample"]
-            initialDelaySeconds: 180
+            initialDelaySeconds: 40
             periodSeconds: 10
             timeoutSeconds: 5
             successThreshold: 1
