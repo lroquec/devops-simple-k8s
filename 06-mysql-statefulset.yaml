@@ -1,11 +1,10 @@
----
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: mysql
   namespace: database
 spec:
-  serviceName: mysql-headless  # Headless Service for stable network identities
+  serviceName: mysql-headless
   replicas: 1
   selector:
     matchLabels:
@@ -16,6 +15,10 @@ spec:
         app: db
     spec:
       serviceAccountName: mysql-sa
+      securityContext:
+        fsGroup: 999
+        runAsUser: 999
+        runAsGroup: 999
       initContainers:
         - name: init-permissions
           image: mysql:8.0
@@ -23,8 +26,20 @@ spec:
             - /bin/bash
             - -c
             - |
+              # Asegurar que el directorio existe
+              mkdir -p /var/lib/mysql
+              
+              # Corregir permisos de forma recursiva
+              find /var/lib/mysql -type d -exec chmod 750 {} \;
+              find /var/lib/mysql -type f -exec chmod 640 {} \;
               chown -R mysql:mysql /var/lib/mysql
-              chmod 750 /var/lib/mysql
+              
+              # Limpiar archivos de bloqueo si existen
+              rm -f /var/lib/mysql/undo_* || true
+              rm -f /var/lib/mysql/*.lock || true
+              
+              # Verificar sistema de archivos
+              touch /var/lib/mysql/permissions_test && rm /var/lib/mysql/permissions_test
           volumeMounts:
             - mountPath: /var/lib/mysql
               name: mysql-data
