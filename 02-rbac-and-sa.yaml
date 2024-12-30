@@ -32,12 +32,12 @@ metadata:
   labels:
     app.kubernetes.io/instance: usermgm
 rules:
-- apiGroups: [""]
-  resources: ["pods"]
-  verbs: ["get", "list"]
-- apiGroups: ["metrics.k8s.io"]
-  resources: ["pods"]
-  verbs: ["get", "list"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list"]
+  - apiGroups: ["metrics.k8s.io"]
+    resources: ["pods"]
+    verbs: ["get", "list"]
 ---
 # Role for accessing MySQL in database namespace
 apiVersion: rbac.authorization.k8s.io/v1
@@ -48,9 +48,9 @@ metadata:
   labels:
     app.kubernetes.io/instance: usermgm
 rules:
-- apiGroups: [""]
-  resources: ["services", "endpoints", "pods"]
-  verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["services", "endpoints", "pods"]
+    verbs: ["get", "list", "watch"]
 ---
 # RoleBinding for metrics in usermgm namespace
 apiVersion: rbac.authorization.k8s.io/v1
@@ -61,12 +61,12 @@ metadata:
   labels:
     app.kubernetes.io/instance: usermgm
 subjects:
-- kind: ServiceAccount
-  name: usermgmt-admin-sa
-  namespace: usermgm
-- kind: ServiceAccount
-  name: usermgmt-user-sa
-  namespace: usermgm
+  - kind: ServiceAccount
+    name: usermgmt-admin-sa
+    namespace: usermgm
+  - kind: ServiceAccount
+    name: usermgmt-user-sa
+    namespace: usermgm
 roleRef:
   kind: Role
   name: pod-metrics-reader
@@ -81,12 +81,12 @@ metadata:
   labels:
     app.kubernetes.io/instance: usermgm
 subjects:
-- kind: ServiceAccount
-  name: usermgmt-admin-sa
-  namespace: usermgm
-- kind: ServiceAccount
-  name: usermgmt-user-sa
-  namespace: usermgm
+  - kind: ServiceAccount
+    name: usermgmt-admin-sa
+    namespace: usermgm
+  - kind: ServiceAccount
+    name: usermgmt-user-sa
+    namespace: usermgm
 roleRef:
   kind: Role
   name: mysql-access

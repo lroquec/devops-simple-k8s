@@ -1,3 +1,4 @@
+---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -22,23 +23,20 @@ spec:
       initContainers:
         - name: init-permissions
           image: mysql:8.0
-          command: 
+          command:
             - /bin/bash
             - -c
             - |
-              # Asegurar que el directorio existe
+              # Check if the data directory is empty
               mkdir -p /var/lib/mysql
-              
-              # Corregir permisos de forma recursiva
+              # Fix permissions
               find /var/lib/mysql -type d -exec chmod 750 {} \;
               find /var/lib/mysql -type f -exec chmod 640 {} \;
               chown -R mysql:mysql /var/lib/mysql
-              
-              # Limpiar archivos de bloqueo si existen
+              # Clean up
               rm -f /var/lib/mysql/undo_* || true
               rm -f /var/lib/mysql/*.lock || true
-              
-              # Verificar sistema de archivos
+              # Verify permissions
               touch /var/lib/mysql/permissions_test && rm /var/lib/mysql/permissions_test
           volumeMounts:
             - mountPath: /var/lib/mysql
