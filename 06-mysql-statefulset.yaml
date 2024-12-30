@@ -43,6 +43,13 @@ spec:
           volumeMounts:
             - mountPath: /var/lib/mysql
               name: mysql-data
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
       containers:
         - name: mysql
           image: mysql:8.0
