@@ -16,6 +16,18 @@ spec:
         app: db
     spec:
       serviceAccountName: mysql-sa
+      initContainers:
+        - name: init-permissions
+          image: mysql:8.0
+          command: 
+            - /bin/bash
+            - -c
+            - |
+              chown -R mysql:mysql /var/lib/mysql
+              chmod 750 /var/lib/mysql
+          volumeMounts:
+            - mountPath: /var/lib/mysql
+              name: mysql-data
       containers:
         - name: mysql
           image: mysql:8.0
