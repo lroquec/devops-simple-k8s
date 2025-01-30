@@ -49,7 +49,7 @@ spec:
               type: RuntimeDefault
       containers:
         - name: usermgmt-user
-          image: lroquec/usermgm-user:cf60c4c060d41ad73d22c3d5e140e0ccc989c449
+          image: lroquec/usermgm-user:5d875f46a8c7f0dbf59551dd9bd1ca052e6f4d1f
           imagePullPolicy: Always
           ports:
             - containerPort: 5000
