@@ -27,3 +27,7 @@ images:
   newTag: base
 
 namePrefix: base-
+
+commonLabels:
+  app.kubernetes.io/part-of: user-management
+  app.kubernetes.io/managed-by: kustomize
