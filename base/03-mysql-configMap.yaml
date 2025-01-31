@@ -3,7 +3,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: pythonlogin-init-sql
-  namespace: database
+  namespace: app
 data:
   init.sql: |
     CREATE DATABASE IF NOT EXISTS `pythonlogin`;

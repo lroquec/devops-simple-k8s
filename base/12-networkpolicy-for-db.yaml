@@ -12,7 +12,7 @@ spec:
     - from:
         - namespaceSelector:
             matchLabels:
-              name: usermgm
+              name: app
         - ipBlock:
             cidr: 127.0.0.1/32  # Allow localhost traffic
       ports:
