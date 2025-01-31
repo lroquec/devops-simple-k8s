@@ -6,6 +6,14 @@ resources:
 - ../../base
 - quotas.yaml
 
+secretGenerator:
+- name: usermgmt-mysql-secret
+  envs:
+  - mysql-secret.env
+- name: usermgmt-webapp-secret
+  envs:
+  - webapp-secret.env
+
 images:
 - name: lroquec/usermgm-admin
   newTag: v1.0.0
@@ -17,12 +25,29 @@ namespace: prod
 
 patches:
 - target:
+    kind: NetworkPolicy
+    name: allow-usermgm
+  patch: |-
+    - op: replace
+      path: /spec/ingress/0/from/0/namespaceSelector/matchLabels/name
+      value: prod
+
+- target:
     kind: Namespace
     name: app
   patch: |-
     - op: replace
       path: /metadata/name
       value: prod
+
+- target:
+    kind: Namespace
+    name: app
+  patch: |-
+    - op: replace
+      path: /metadata/labels/name
+      value: prod
+
 - patch: |-
     - op: replace
       path: /spec/replicas
@@ -30,6 +55,7 @@ patches:
   target:
     kind: Deployment
     name: .*
+
 - patch: |-
     - op: replace
       path: /spec/minReplicas
