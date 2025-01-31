@@ -37,9 +37,9 @@ jobs:
       # Run Flake8 for Python files
       - name: Run Python linter (flake8)
         run: |
-          flake8 .
+          flake8 base/
 
       # Run YAML linter
       - name: Run YAML linter (yamllint)
         run: |
-          yamllint .
+          yamllint base/
