@@ -95,65 +95,128 @@ Demonstrates:
 - Integration with resource quotas
 - Metrics-based scaling decisions
 
+## Understanding Pod Scheduling and Scaling
+
+The project demonstrates advanced scheduling and scaling through:
+- Priority classes for different workloads
+- HPA for automatic scaling
+- Resource quotas for capacity management
+- RBAC for access control
+
+This combination shows how Kubernetes manages:
+- Resource allocation
+- Workload priorities
+- Automatic scaling
+- Security boundaries
+
+## Kustomize for Configuration Management
+
+This project uses Kustomize for managing Kubernetes manifest variations across different environments (dev, staging, prod). Kustomize is a built-in configuration management tool in kubectl that allows you to customize raw, template-free YAML files for multiple purposes, leaving the original YAML untouched and usable as is.
+
+Key features of Kustomize used in this project:
+
+- **Base and Overlay Structure**: The `base` directory contains the common resources, while the `overlays` directory contains environment-specific variations. This allows for a clean separation of concerns.
+
+- **Resource Customization**: Kustomize allows modifying resources defined in the base. For example, in the `prod` overlay, the replica count and resource limits are increased compared to the base.
+
+- **Generated Resources**: Kustomize can generate resources, such as Secrets, from files. This is used to manage sensitive data like database passwords separately for each environment.
+
+- **Patch and Strategic Merge**: Kustomize supports patching resources using JSON6902 patch and strategic merge patch. This is used to make environment-specific changes to resources, like updating the namespace name.
+
+To apply the Kustomize configuration for a specific environment, use the `-k` flag with `kubectl apply`, pointing to the overlay directory:
+
+```bash
+# Apply base configuration
+kubectl apply -k base/
+
+# Apply the dev configuration
+kubectl apply -k overlays/dev
+
+# Apply the staging configuration
+kubectl apply -k overlays/staging
+
+# Apply the prod configuration
+kubectl apply -k overlays/prod
+```
+
+This Kustomize setup demonstrates how to manage configurations for multiple environments while keeping the common base configuration reusable and maintaining a single source of truth.
+
 ## Resource Quotas and Scaling
 
-### Database Namespace Quotas
-- CPU Request: 1000m
-- CPU Limit: 2000m
-- Memory Request: 2048Mi
-- Memory Limit: 4Gi
-- Max Pods: 4
+Resource quotas and scaling parameters are defined per environment using Kustomize overlays. Each overlay (dev, staging, prod) has its own `quotas.yaml` file which defines the resource quotas for the 'user' and 'admin' components in that environment.
 
-### Admin UI Quotas and Scaling
-- Resource Quotas:
-  - CPU Request: 500m
-  - CPU Limit: 1000m
-  - Memory Request: 128Mi
-  - Memory Limit: 256Mi
-  - Max Pods: 2
-- HPA Configuration:
-  - Min Replicas: 1
-  - Max Replicas: 2
-  - CPU Target: 80%
-  - Memory Target: 80%
+The quotas define limits on:
+- CPU request and limit
+- Memory request and limit 
+- Maximum number of pods
 
-### User UI Quotas and Scaling
-- Resource Quotas:
-  - CPU Request: 2500m
-  - CPU Limit: 5000m
-  - Memory Request: 640Mi
-  - Memory Limit: 1280Mi
-  - Max Pods: 10
-- HPA Configuration:
-  - Min Replicas: 1
-  - Max Replicas: 5
-  - CPU Target: 80%
-  - Memory Target: 80%
+These quotas ensure that each environment uses resources appropriately and prevent any one component from consuming too many resources.
+
+The HorizontalPodAutoscaler (HPA) configurations are also defined per environment in the overlay's `kustomization.yaml` file. The HPA parameters control the minimum and maximum number of replicas for each component based on CPU and memory utilization.
+
+Refer to the `quotas.yaml` and `kustomization.yaml` files in each overlay directory (`overlays/dev`, `overlays/staging`, `overlays/prod`) for the specific values for each environment.
+
+## Environment Configuration
+
+The project uses Kustomize overlays for environment-specific configurations (dev, staging, prod). Each environment has its own set of secrets and configurations managed through `.env` files.
+
+### Environment Variables Files
+
+#### MySQL Secret Configuration (`mysql-secret.env`)
+```env
+DB_HOSTNAME=db               # Database hostname
+DB_PORT=3306                # MySQL port
+DB_NAME=pythonlogin         # Database name
+DB_USERNAME=root            # Database user
+DB_PASSWORD=[env-specific]  # Different for each environment
+```
+
+#### Webapp Secret Configuration (`webapp-secret.env`)
+```env
+DB_HOSTNAME=[env].svc.cluster.local  # Internal k8s DNS
+DB_PORT=3306                         # MySQL port
+DB_NAME=pythonlogin                  # Database name
+DB_USERNAME=root                     # Database user
+DB_PASSWORD=[env-specific]           # Environment-specific password
+SECRET_KEY=[env-specific]            # Unique key per environment
+```
+
+Environment-specific values:
+- Dev: Lower resource limits, simplified setup
+- Staging: Intermediate configuration for testing
+- Production: Full resources, optimized for performance
+
+## Scaling Configuration
+
+HPA settings per environment:
+- Dev: Scales at 85% utilization (conservative)
+- Staging: Scales at 80% utilization
+- Production: Scales at 70% utilization (aggressive)
 
 ## Learning Exercises
 
 1. Explore RBAC configurations:
 ```bash
 # Check service accounts
-kubectl get sa -n usermgm
+kubectl get sa -n dev
 
 # Examine role bindings
-kubectl describe rolebinding -n usermgm
+kubectl describe rolebinding -n dev
 ```
 
 2. Monitor HPA behavior:
 ```bash
 # Watch HPA status
-kubectl get hpa -n usermgm -w
+kubectl get hpa -n staging -w
 
 # Check current metrics
-kubectl top pods -n usermgm
+kubectl top pods -n prod
 ```
 
 3. Test scaling behavior:
 ```bash
 # Generate load and watch scaling
-kubectl run -i --tty load-generator --rm --image=busybox:1.28 --restart=Never -- /bin/sh -c "while sleep 0.01; do wget -q -O- http://usermgmt-user-service; done"
+kubectl run -i --tty load-generator --rm --image=busybox:1.28 --restart=Never -n dev -- /bin/sh -c "while sleep 0.01; do wget -q -O- http://usermgmt-user-service; done"
 ```
 
 ## Prerequisites
@@ -168,7 +231,7 @@ kubectl run -i --tty load-generator --rm --image=busybox:1.28 --restart=Never --
 To remove all resources:
 ```bash
 # Delete namespaces (this will delete all resources within them)
-kubectl delete ns usermgm database
+kubectl delete ns dev staging prod
 ```
 
 ## Next Steps for Learning
@@ -180,20 +243,6 @@ After understanding this project, you can:
 4. Implement service mesh
 5. Explore backup strategies
 6. Learn about GitOps principles
-
-## Understanding Pod Scheduling and Scaling
-
-The project demonstrates advanced scheduling and scaling through:
-- Priority classes for different workloads
-- HPA for automatic scaling
-- Resource quotas for capacity management
-- RBAC for access control
-
-This combination shows how Kubernetes manages:
-- Resource allocation
-- Workload priorities
-- Automatic scaling
-- Security boundaries
 
 # Continuous Integration and Deployment
 
