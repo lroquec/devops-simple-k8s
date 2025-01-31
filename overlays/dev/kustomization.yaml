@@ -5,6 +5,12 @@ kind: Kustomization
 resources:
 - ../../base
 
+images:
+- name: lroquec/usermgm-admin
+  newTag: dev-latest
+- name: lroquec/usermgm-user
+  newTag: dev-latest
+
 namePrefix: dev-
 namespace: dev
 
