@@ -24,6 +24,17 @@ namespace: dev-usermgm
 
 patches:
 - target:
+    kind: HorizontalPodAutoscaler
+    name: .*
+  patch: |-
+    - op: replace
+      path: /spec/metrics/0/resource/target/averageUtilization
+      value: 85
+    - op: replace
+      path: /spec/metrics/1/resource/target/averageUtilization
+      value: 85
+
+- target:
     kind: NetworkPolicy
     name: allow-usermgm
   patch: |-
