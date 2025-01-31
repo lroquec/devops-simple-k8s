@@ -4,6 +4,12 @@ kind: Kustomization
 resources:
 - ../../base
 
+images:
+- name: lroquec/usermgm-admin
+  newTag: staging-v1.0.0
+- name: lroquec/usermgm-user
+  newTag: staging-v1.0.0
+
 namePrefix: staging-
 namespace: staging
 
