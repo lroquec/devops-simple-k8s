@@ -65,3 +65,14 @@ patches:
   target:
     kind: HorizontalPodAutoscaler
     name: .*
+
+- target:
+    kind: HorizontalPodAutoscaler
+    name: .*
+  patch: |-
+    - op: replace
+      path: /spec/metrics/0/resource/target/averageUtilization
+      value: 80
+    - op: replace
+      path: /spec/metrics/1/resource/target/averageUtilization
+      value: 80
