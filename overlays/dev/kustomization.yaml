@@ -3,6 +3,7 @@ kind: Kustomization
 
 resources:
 - ../../base
+- quotas.yaml
 
 images:
 - name: lroquec/usermgm-admin
@@ -11,9 +12,17 @@ images:
   newTag: 3a9e91f
 
 namePrefix: dev-
-namespace: dev
+namespace: dev-usermgm
 
 patches:
+- target:
+    kind: Namespace
+    name: app
+  patch: |-
+    - op: replace
+      path: /metadata/name
+      value: dev
+
 - patch: |-
     - op: replace
       path: /spec/replicas

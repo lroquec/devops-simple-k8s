@@ -3,6 +3,7 @@ kind: Kustomization
 
 resources:
 - ../../base
+- quotas.yaml
 
 images:
 - name: lroquec/usermgm-admin
@@ -14,6 +15,13 @@ namePrefix: staging-
 namespace: staging
 
 patches:
+- target:
+    kind: Namespace
+    name: app
+  patch: |-
+    - op: replace
+      path: /metadata/name
+      value: staging
 - patch: |-
     - op: replace
       path: /spec/replicas

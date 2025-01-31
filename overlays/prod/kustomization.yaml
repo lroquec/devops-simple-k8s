@@ -4,6 +4,7 @@ kind: Kustomization
 
 resources:
 - ../../base
+- quotas.yaml
 
 images:
 - name: lroquec/usermgm-admin
@@ -15,6 +16,13 @@ namePrefix: prod-
 namespace: prod
 
 patches:
+- target:
+    kind: Namespace
+    name: app
+  patch: |-
+    - op: replace
+      path: /metadata/name
+      value: prod
 - patch: |-
     - op: replace
       path: /spec/replicas
