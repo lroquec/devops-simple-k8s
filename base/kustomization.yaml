@@ -18,4 +18,12 @@ resources:
 - 12-networkpolicy-for-db.yaml
 - 13-hpa-config.yaml
 
+images:
+- name: lroquec/usermgm-admin
+  newName: lroquec/usermgm-admin
+  newTag: base
+- name: lroquec/usermgm-user
+  newName: lroquec/usermgm-user
+  newTag: base
+
 namePrefix: base-
