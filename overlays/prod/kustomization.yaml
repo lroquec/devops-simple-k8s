@@ -5,6 +5,12 @@ kind: Kustomization
 resources:
 - ../../base
 
+images:
+- name: lroquec/usermgm-admin
+  newTag: v1.0.0
+- name: lroquec/usermgm-user
+  newTag: v1.0.0
+
 namePrefix: prod-
 namespace: prod
 
