@@ -9,10 +9,10 @@ resources:
 secretGenerator:
   - name: usermgmt-mysql-secret
     envs:
-    - mysql-secret.env
+      - mysql-secret.env
   - name: usermgmt-webapp-secret
     envs:
-    - webapp-secret.env
+      - webapp-secret.env
 
 images:
   - name: lroquec/usermgm-admin
