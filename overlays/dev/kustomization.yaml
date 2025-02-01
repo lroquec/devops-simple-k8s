@@ -14,6 +14,19 @@ secretGenerator:
     envs:
       - webapp-secret.env
 
+replacements:
+- source:
+    kind: Secret
+    name: usermgmt-mysql-secret
+    version: v1
+  targets:
+  - select:
+      kind: StatefulSet
+      name: mysql
+    fieldPaths:
+    - spec.template.spec.containers.[name=mysql].env.[name=MYSQL_ROOT_PASSWORD].valueFrom.secretKeyRef.name
+    - spec.template.spec.containers.[name=mysql].env.[name=MYSQL_DATABASE].valueFrom.secretKeyRef.name
+
 images:
   - name: lroquec/usermgm-admin
     newTag: 3a9e91f
@@ -21,7 +34,7 @@ images:
     newTag: 3a9e91f
 
 namePrefix: dev-
-namespace: dev-usermgm
+namespace: dev
 
 patches:
   - target:
