@@ -3,28 +3,28 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-- 00-namespaces-resourcesq.yaml
-- 01-storage-class.yaml
-- 02-rbac-and-sa.yaml
-- 03-mysql-configMap.yaml
-- 04-mysql-secret.yaml
-- 05-UserMgmt-Secret.yaml
-- 06-mysql-statefulset.yaml
-- 07-mysql-clusterip-service.yaml
-- 08-UserMgmtAdmin-Deployment.yaml
-- 09-UserMgmtAdmin-Service.yaml
-- 10-UserMgmtUser-Deployment.yaml
-- 11-UserMgmtUser-Service.yaml
-- 12-networkpolicy-for-db.yaml
-- 13-hpa-config.yaml
+  - 00-namespaces-resourcesq.yaml
+  - 01-storage-class.yaml
+  - 02-rbac-and-sa.yaml
+  - 03-mysql-configMap.yaml
+  - 04-mysql-secret.yaml
+  - 05-UserMgmt-Secret.yaml
+  - 06-mysql-statefulset.yaml
+  - 07-mysql-clusterip-service.yaml
+  - 08-UserMgmtAdmin-Deployment.yaml
+  - 09-UserMgmtAdmin-Service.yaml
+  - 10-UserMgmtUser-Deployment.yaml
+  - 11-UserMgmtUser-Service.yaml
+  - 12-networkpolicy-for-db.yaml
+  - 13-hpa-config.yaml
 
 images:
-- name: lroquec/usermgm-admin
-  newName: lroquec/usermgm-admin
-  newTag: base
-- name: lroquec/usermgm-user
-  newName: lroquec/usermgm-user
-  newTag: base
+  - name: lroquec/usermgm-admin
+    newName: lroquec/usermgm-admin
+    newTag: base
+  - name: lroquec/usermgm-user
+    newName: lroquec/usermgm-user
+    newTag: base
 
 namePrefix: base-
 

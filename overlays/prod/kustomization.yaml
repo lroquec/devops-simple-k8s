@@ -3,77 +3,77 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-- ../../base
-- quotas.yaml
+  - ../../base
+  - quotas.yaml
 
 secretGenerator:
-- name: usermgmt-mysql-secret
-  envs:
-  - mysql-secret.env
-- name: usermgmt-webapp-secret
-  envs:
-  - webapp-secret.env
+  - name: usermgmt-mysql-secret
+    envs:
+    - mysql-secret.env
+  - name: usermgmt-webapp-secret
+    envs:
+    - webapp-secret.env
 
 images:
-- name: lroquec/usermgm-admin
-  newTag: v1.0.0
-- name: lroquec/usermgm-user
-  newTag: v1.0.0
+  - name: lroquec/usermgm-admin
+    newTag: v1.0.0
+  - name: lroquec/usermgm-user
+    newTag: v1.0.0
 
 namePrefix: prod-
 namespace: prod
 
 patches:
-- target:
-    kind: NetworkPolicy
-    name: allow-usermgm
-  patch: |-
-    - op: replace
-      path: /spec/ingress/0/from/0/namespaceSelector/matchLabels/name
-      value: prod
+  - target:
+      kind: NetworkPolicy
+      name: allow-usermgm
+    patch: |-
+      - op: replace
+        path: /spec/ingress/0/from/0/namespaceSelector/matchLabels/name
+        value: prod
 
-- target:
-    kind: Namespace
-    name: app
-  patch: |-
-    - op: replace
-      path: /metadata/name
-      value: prod
+  - target:
+      kind: Namespace
+      name: app
+    patch: |-
+      - op: replace
+        path: /metadata/name
+        value: prod
 
-- target:
-    kind: Namespace
-    name: app
-  patch: |-
-    - op: replace
-      path: /metadata/labels/name
-      value: prod
+  - target:
+      kind: Namespace
+      name: app
+    patch: |-
+      - op: replace
+        path: /metadata/labels/name
+        value: prod
 
-- patch: |-
-    - op: replace
-      path: /spec/replicas
-      value: 3
-  target:
-    kind: Deployment
-    name: .*
+  - patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 3
+    target:
+      kind: Deployment
+      name: .*
 
-- patch: |-
-    - op: replace
-      path: /spec/minReplicas
-      value: 3
-    - op: replace
-      path: /spec/maxReplicas
-      value: 10
-  target:
-    kind: HorizontalPodAutoscaler
-    name: .*
+  - patch: |-
+      - op: replace
+        path: /spec/minReplicas
+        value: 3
+      - op: replace
+        path: /spec/maxReplicas
+        value: 10
+    target:
+      kind: HorizontalPodAutoscaler
+      name: .*
 
-- target:
-    kind: HorizontalPodAutoscaler
-    name: .*
-  patch: |-
-    - op: replace
-      path: /spec/metrics/0/resource/target/averageUtilization
-      value: 70
-    - op: replace
-      path: /spec/metrics/1/resource/target/averageUtilization
-      value: 70
+  - target:
+      kind: HorizontalPodAutoscaler
+      name: .*
+    patch: |-
+      - op: replace
+        path: /spec/metrics/0/resource/target/averageUtilization
+        value: 70
+      - op: replace
+        path: /spec/metrics/1/resource/target/averageUtilization
+        value: 70
