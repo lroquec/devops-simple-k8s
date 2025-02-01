@@ -1,14 +1,14 @@
----
-apiVersion: storage.k8s.io/v1
-kind: StorageClass
-metadata:
-  name: nfs-csi
-provisioner: nfs.csi.k8s.io
-parameters:
-  server: 192.168.4.36
-  share: /var/lib/vz/nfs-export/
-reclaimPolicy: Delete
-volumeBindingMode: Immediate
-mountOptions:
-  - nfsvers=3
-  - lock
+# ---
+# apiVersion: storage.k8s.io/v1
+# kind: StorageClass
+# metadata:
+#   name: nfs-csi
+# provisioner: nfs.csi.k8s.io
+# parameters:
+#   server: 192.168.4.36
+#   share: /var/lib/vz/nfs-export/
+# reclaimPolicy: Delete
+# volumeBindingMode: Immediate
+# mountOptions:
+#   - nfsvers=3
+#   - lock
