@@ -7,16 +7,14 @@ resources:
   - 01-storage-class.yaml
   - 02-rbac-and-sa.yaml
   - 03-mysql-configMap.yaml
-  - 04-mysql-secret.yaml
-  - 05-UserMgmt-Secret.yaml
-  - 06-mysql-statefulset.yaml
-  - 07-mysql-clusterip-service.yaml
-  - 08-UserMgmtAdmin-Deployment.yaml
-  - 09-UserMgmtAdmin-Service.yaml
-  - 10-UserMgmtUser-Deployment.yaml
-  - 11-UserMgmtUser-Service.yaml
-  - 12-networkpolicy-for-db.yaml
-  - 13-hpa-config.yaml
+  - 04-mysql-statefulset.yaml
+  - 05-mysql-clusterip-service.yaml
+  - 06-UserMgmtAdmin-Deployment.yaml
+  - 07-UserMgmtAdmin-Service.yaml
+  - 08-UserMgmtUser-Deployment.yaml
+  - 09-UserMgmtUser-Service.yaml
+  - 10-networkpolicy-for-db.yaml
+  - 11-hpa-config.yaml
 
 images:
   - name: lroquec/usermgm-admin
