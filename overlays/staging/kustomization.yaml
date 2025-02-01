@@ -16,9 +16,9 @@ secretGenerator:
 
 images:
   - name: lroquec/usermgm-admin
-    newTag: staging-v1.0.0
+    newTag: 3a9e91f
   - name: lroquec/usermgm-user
-    newTag: staging-v1.0.0
+    newTag: 3a9e91f
 
 namePrefix: staging-
 namespace: staging
