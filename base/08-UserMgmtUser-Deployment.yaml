@@ -1,0 +1,131 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: usermgmt-user
+  labels:
+    app: usermgmt-user
+  namespace: app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: usermgmt-user
+  template:
+    metadata:
+      labels:
+        app: usermgmt-user
+    spec:
+      priorityClassName: usermgmt-user-priority
+      serviceAccountName: usermgmt-user-sa
+      initContainers:
+        - name: init-db
+          image: busybox:1.31
+          command:
+            - sh
+            - -c
+            - >
+              echo -e "Checking for MySQL Server availability";
+              while ! nc -z ${MYSQL_HOST} ${DB_PORT}; do
+                sleep 1;
+                printf "-";
+              done;
+              echo -e "  >> MySQL DB Server has started";
+          env:
+            - name: MYSQL_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: usermgmt-webapp-secret
+                  key: DB_HOSTNAME
+            - name: DB_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: usermgmt-webapp-secret
+                  key: DB_PORT
+          # Resource limits
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "250m"
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ['ALL']
+            runAsNonRoot: true
+            runAsUser: 1000
+            seccompProfile:
+              type: RuntimeDefault
+      containers:
+        - name: usermgmt-user
+          image: lroquec/usermgm-user:b94c3f390cd15e4d3b6694f11bd66d5f738d7d42
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 5000
+          env:
+            - name: MYSQL_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: usermgmt-webapp-secret
+                  key: DB_HOSTNAME
+            - name: DB_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: usermgmt-webapp-secret
+                  key: DB_PORT
+            - name: MYSQL_DB
+              valueFrom:
+                secretKeyRef:
+                  name: usermgmt-webapp-secret
+                  key: DB_NAME
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: usermgmt-webapp-secret
+                  key: DB_USERNAME
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: usermgmt-webapp-secret
+                  key: DB_PASSWORD
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: usermgmt-webapp-secret
+                  key: SECRET_KEY
+          # Probes
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 5000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 5000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          # Resource limits
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "250m"
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ['ALL']
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
