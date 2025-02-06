@@ -7,7 +7,7 @@ metadata:
     app: usermgmt-user
   namespace: app
 spec:
-  replicas: 1
+  # replicas: 1 It generates issues if you have ArgoCD and HPA
   selector:
     matchLabels:
       app: usermgmt-user
