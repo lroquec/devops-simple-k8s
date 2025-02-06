@@ -74,13 +74,6 @@ patches:
 
   - patch: |-
       - op: replace
-        path: /spec/replicas
-        value: 1
-    target:
-      kind: Deployment
-      name: .*
-  - patch: |-
-      - op: replace
         path: /spec/minReplicas
         value: 1
       - op: replace
